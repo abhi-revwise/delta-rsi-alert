@@ -1,0 +1,71 @@
+//@version=5
+// RSI Band Crossing Alert — 4H
+// Signals when RSI crosses the upper band (60) or the lower band (35).
+indicator("RSI Band Alert (60 / 35)", shorttitle = "RSI 60/35", overlay = false)
+
+// ---------------- Inputs ----------------
+rsiLen    = input.int(14,      "RSI Length",        minval = 1)
+src       = input.source(close, "Source")
+upperBand = input.float(60.0,  "Upper Band",        minval = 0, maxval = 100)
+lowerBand = input.float(35.0,  "Lower Band",        minval = 0, maxval = 100)
+tf        = input.timeframe("240", "RSI Timeframe")   // 240 = 4 hours
+confirmed = input.bool(true,   "Signal only on closed bar",
+     tooltip = "ON: fires once the 4H candle closes (no repaint). OFF: fires intrabar and can flip back.")
+
+// ---------------- RSI on the chosen timeframe ----------------
+// gaps_off + lookahead_off => no repainting of historical values.
+rsiRaw = ta.rsi(src, rsiLen)
+rsi    = request.security(syminfo.tickerid, tf, rsiRaw,
+     gaps = barmerge.gaps_off, lookahead = barmerge.lookahead_off)
+
+// ---------------- Cross detection ----------------
+crossUp   = ta.crossover(rsi,  upperBand)   // RSI moves above 60
+crossDown = ta.crossunder(rsi, lowerBand)   // RSI moves below 35
+
+// Optional re-entry signals (the other side of each band)
+exitUpper = ta.crossunder(rsi, upperBand)
+exitLower = ta.crossover(rsi,  lowerBand)
+
+// Gate on bar close when "confirmed" is on
+ok        = confirmed ? barstate.isconfirmed : true
+sigUp     = crossUp   and ok
+sigDown   = crossDown and ok
+sigExitUp = exitUpper and ok
+sigExitDn = exitLower and ok
+
+// ---------------- Plots ----------------
+plot(rsi, "RSI", color = color.new(#2962ff, 0), linewidth = 2)
+hUpper = hline(upperBand, "Upper Band", color = color.new(color.red,  30), linestyle = hline.style_dashed)
+hLower = hline(lowerBand, "Lower Band", color = color.new(color.green, 30), linestyle = hline.style_dashed)
+hline(50, "Midline", color = color.new(color.gray, 60), linestyle = hline.style_dotted)
+fill(hUpper, hLower, color = color.new(color.blue, 95), title = "Band Zone")
+
+plotshape(sigUp,   "Cross Above Upper", shape.triangleup,   location.bottom, color.new(color.green, 0), size = size.small)
+plotshape(sigDown, "Cross Below Lower", shape.triangledown, location.top,    color.new(color.red,   0), size = size.small)
+
+bgcolor(sigUp   ? color.new(color.green, 85) : sigDown ? color.new(color.red, 85) : na)
+
+// ---------------- Alerts ----------------
+// JSON-shaped messages so a webhook receiver can parse them directly.
+alertcondition(crossUp,   "RSI crossed ABOVE upper band",
+     '{"event":"rsi_cross_up","symbol":"{{ticker}}","tf":"4h","band":60,"price":"{{close}}"}')
+alertcondition(crossDown, "RSI crossed BELOW lower band",
+     '{"event":"rsi_cross_down","symbol":"{{ticker}}","tf":"4h","band":35,"price":"{{close}}"}')
+
+if sigUp
+    alert('{"event":"rsi_cross_up","symbol":"' + syminfo.ticker + '","tf":"4h","band":' +
+          str.tostring(upperBand) + ',"rsi":' + str.tostring(rsi, "#.##") +
+          ',"price":' + str.tostring(close) + '}', alert.freq_once_per_bar_close)
+
+if sigDown
+    alert('{"event":"rsi_cross_down","symbol":"' + syminfo.ticker + '","tf":"4h","band":' +
+          str.tostring(lowerBand) + ',"rsi":' + str.tostring(rsi, "#.##") +
+          ',"price":' + str.tostring(close) + '}', alert.freq_once_per_bar_close)
+
+if sigExitUp
+    alert('{"event":"rsi_exit_upper","symbol":"' + syminfo.ticker + '","tf":"4h","rsi":' +
+          str.tostring(rsi, "#.##") + '}', alert.freq_once_per_bar_close)
+
+if sigExitDn
+    alert('{"event":"rsi_exit_lower","symbol":"' + syminfo.ticker + '","tf":"4h","rsi":' +
+          str.tostring(rsi, "#.##") + '}', alert.freq_once_per_bar_close)

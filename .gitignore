@@ -1,0 +1,6 @@
+.env
+.env.local
+*.state.json
+__pycache__/
+.venv/
+venv/

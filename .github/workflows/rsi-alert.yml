@@ -1,0 +1,52 @@
+name: RSI 4H band alert
+
+on:
+  schedule:
+    # 5 min past every 4H candle close (UTC). GitHub cron is UTC-only.
+    - cron: '5 0,4,8,12,16,20 * * *'
+  workflow_dispatch:        # lets you run it by hand from the Actions tab
+
+# Never grant more than needed; this job only reads public data and POSTs to ntfy.
+permissions:
+  contents: read
+
+concurrency:
+  group: rsi-alert
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Carries rsi_alert.state.json between runs so a bar can't alert twice.
+      # Rolling key + restore-keys: each run restores the newest prior cache
+      # and saves its own (cache entries are immutable, so the key must vary).
+      - name: Restore alert state
+        uses: actions/cache@v4
+        with:
+          path: rsi_alert.state.json
+          key: rsi-state-${{ github.run_id }}
+          restore-keys: rsi-state-
+
+      - name: Check RSI
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          SYMBOL: ${{ vars.SYMBOL || 'BTCUSD' }}
+          RESOLUTION: ${{ vars.RESOLUTION || '4h' }}
+          RSI_LENGTH: ${{ vars.RSI_LENGTH || '14' }}
+          UPPER_BAND: ${{ vars.UPPER_BAND || '60' }}
+          LOWER_BAND: ${{ vars.LOWER_BAND || '35' }}
+          MACOS_NOTIFY: '0'
+        run: |
+          if [ -z "$NTFY_TOPIC" ]; then
+            echo "::error::NTFY_TOPIC secret is not set — no alert could be delivered."
+            exit 1
+          fi
+          python3 rsi_alert.py --once
