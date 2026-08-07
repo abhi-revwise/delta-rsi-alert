@@ -39,7 +39,38 @@ Tune everything in `.env`: `SYMBOL`, `RESOLUTION`, `RSI_LENGTH`, `UPPER_BAND`, `
 - **ntfy.sh** — set `NTFY_TOPIC` to any hard-to-guess string, subscribe in the ntfy app.
   No account needed; note the topic is public to anyone who guesses it.
 
-## Run it unattended
+## Deployed: GitHub Actions (live)
+
+Runs automatically in the cloud — your Mac can be asleep or off.
+
+- Repo: `abhi-revwise/delta-rsi-alert` (**private**)
+- Workflow: `.github/workflows/rsi-alert.yml`
+- Schedule: `5 0,4,8,12,16,20 * * *` (UTC) — 5 min after each 4H close
+- Delivery: ntfy, topic stored as the repo secret `NTFY_TOPIC`
+- Dedupe: `rsi_alert.state.json` persisted between runs via `actions/cache`
+- **No Delta API keys are used.** Candles are a public endpoint.
+
+Tune the bands without touching code — set repo *variables* (not secrets):
+
+```bash
+gh variable set UPPER_BAND --body 70     # e.g. switch to classic overbought
+gh variable set LOWER_BAND --body 30
+gh variable set SYMBOL     --body ETHUSD
+```
+
+Useful commands:
+
+```bash
+gh workflow run "RSI 4H band alert"   # fire a check right now
+gh run list --limit 5                 # recent runs
+gh run view --log                     # output of the last run
+```
+
+Caveat: GitHub's scheduled triggers are best-effort — runs can be delayed
+several minutes under load, and on rare occasions skipped. Fine for a 4H
+signal, not for anything latency-sensitive.
+
+## Run it unattended (local alternative)
 
 `--watch` dies with your terminal. For a durable setup, cron every 4H just after close:
 
