@@ -1,6 +1,6 @@
-# Delta Exchange RSI 60/35 Alerter
+# Delta Exchange RSI 60/30 Alerter
 
-Alerts when RSI(14) on **closed 4H candles** crosses **above 60** or **below 35**.
+Alerts when RSI(14) on **closed 4H candles** crosses **above 60** or **below 30**.
 
 Two independent implementations — use either or both:
 
@@ -20,7 +20,7 @@ No dependencies — Python 3.9+ standard library only.
 python3 rsi_alert.py --backtest   # list historical crosses, sends nothing
 python3 rsi_alert.py --once       # one check (use from cron)
 python3 rsi_alert.py --watch      # loop, wakes 30s after each 4H close
-python3 rsi_alert.py --targets    # price levels that hit RSI 60/35 next bar
+python3 rsi_alert.py --targets    # price levels that hit RSI 60/30 next bar
 python3 rsi_alert.py --once --symbol ETHUSD
 ```
 

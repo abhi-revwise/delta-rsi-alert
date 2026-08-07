@@ -1,6 +1,6 @@
-# RSI 60/35 Band Alert on Delta Exchange — Implementation Plan
+# RSI 60/30 Band Alert on Delta Exchange — Implementation Plan
 
-**Goal:** Get notified when RSI(14) on the **4-hour** candle crosses **above 60** or **below 35**
+**Goal:** Get notified when RSI(14) on the **4-hour** candle crosses **above 60** or **below 30**
 for a Delta Exchange instrument (e.g. `BTCUSD` perpetual).
 
 ---
@@ -29,7 +29,7 @@ Pick one track. Track A is faster; Track B is self-contained and uses Delta's ex
 ### A1. Add the script
 1. Open tradingview.com → chart your symbol → set timeframe to **4h**.
 2. **Pine Editor** (bottom panel) → paste `rsi_band_alert.pine` → **Save** → **Add to chart**.
-3. Verify the two dashed bands sit at 60 and 35 and triangles appear at historical crosses.
+3. Verify the two dashed bands sit at 60 and 30 and triangles appear at historical crosses.
 
 Note on the `RSI Timeframe` input: it defaults to `240`. Leave the chart itself on 4h and the
 input on `240` — they agree and nothing repaints. If you chart a lower timeframe, the input
@@ -39,7 +39,7 @@ still forces 4H RSI, but signals will render on the lower-TF bars.
 unconfirmed cross at 59.8 → 60.1 → 59.7 will fire and then un-fire.
 
 ### A2. Create the alert
-- Right-click chart → **Add alert** → Condition = **RSI Band Alert (60 / 35)**.
+- Right-click chart → **Add alert** → Condition = **RSI Band Alert (60 / 30)**.
 - Either pick a specific `alertcondition` (one alert each for up/down), **or** select
   *"Any alert() function call"* to get all four events from a single alert. The latter is
   cheaper against your TradingView alert quota.
@@ -128,8 +128,8 @@ the line above as the shape, not gospel.
 
 ## Recommended sequencing
 
-1. **Day 1** — Track A, alert-only, mobile push. Confirms the 60/35 logic on your symbol. No keys.
-2. **Week 1** — Observe. Count how many signals fire in 4H on your instrument and whether 60/35
+1. **Day 1** — Track A, alert-only, mobile push. Confirms the 60/30 logic on your symbol. No keys.
+2. **Week 1** — Observe. Count how many signals fire in 4H on your instrument and whether 60/30
    is actually the threshold you want (see below).
 3. **Week 2** — Add webhook → Telegram if you want richer/faster delivery.
 4. **Later, only if automating** — testnet Delta keys → paper-trade → mainnet keys with a
@@ -137,13 +137,24 @@ the line above as the shape, not gospel.
 
 ---
 
-## One note on the 60/35 levels
+## One note on the 60/30 levels
 
-60/35 is asymmetric around 50 and neither level is a classic overbought/oversold boundary
-(70/30) — 60 will trip on ordinary bullish momentum, not exhaustion. On 4H crypto that
-typically means **frequent** upper-band signals. That may be exactly what you intend if
-you're using 60 as a trend-confirmation filter rather than a reversal signal. Both levels
-are inputs in the script, so retune from the chart without editing code.
+The bands do different jobs, and that is fine as long as it is deliberate.
+
+**30 is the classic oversold boundary.** It is a genuine capitulation reading and it is
+rare: over 299 closed 4H bars (~50 days of BTCUSD), RSI crossed below 30 exactly **once**.
+Tightening from 35 to 30 cut down-crosses from 6 to 1. Expect this side to be quiet —
+which is the point of an oversold signal, but do not read silence as a broken alerter.
+
+**60 is not an overbought boundary.** The classic level is 70. At 60 you are flagging
+ordinary bullish momentum, not exhaustion, so this side fires far more: **17 up-crosses**
+in the same 50 days. That is the right choice if you use 60 as a trend-confirmation
+filter. If you meant "tell me when BTC is stretched", 70 is the level you want.
+
+Net: 18 signals / ~50 days, roughly **10.8 per month**, heavily skewed upward.
+
+Both levels are config, not code — change them with `gh variable set UPPER_BAND --body 70`
+or by editing `.env` locally.
 
 ---
 
