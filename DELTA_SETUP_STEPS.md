@@ -1,4 +1,4 @@
-# Getting notified on RSI 60/30 crosses — without TradingView
+# Getting notified on RSI 60/35 crosses — without TradingView
 
 Verified against Delta Exchange live (BTCUSD, India) and the Delta API on 2026-08-07.
 
@@ -40,7 +40,7 @@ and Route B is the only option. Either way it is price-only and never RSI-aware.
 ## Route A — Delta app push, via RSI-to-price conversion (manual, every 4H)
 
 RSI is strictly monotonic in the current bar's close, so the RSI band can be converted
-into an **exact price**: the close that would print RSI = 60 (or 30) on this bar.
+into an **exact price**: the close that would print RSI = 60 (or 35) on this bar.
 Set a Delta price alert at that number and **the notification comes from the Delta app**.
 
 ```bash
@@ -52,7 +52,7 @@ BTCUSD 4h — RSI now 63.79, last close 65003
 Levels for the bar closing 2026-08-07 16:00 UTC:
 
   RSI 60  <-  close at/above  64,819.5   (-0.28%)
-  RSI 30  <-  close at/below  61,728.3   (-5.04%)
+  RSI 35  <-  close at/below  62,611.5   (-3.68%)
 ```
 
 (The inversion is exact, not an estimate — round-trip tested: feeding 64,819.52 back
@@ -149,12 +149,12 @@ and needs no manual input ever.
 
 ## Optional — see the bands on Delta's chart
 
-Independent of alerting, you can display RSI 60/30 on Delta itself:
+Independent of alerting, you can display RSI 60/35 on Delta itself:
 
 1. Chart toolbar → timeframe (`1h`) → **HOURS → 4 hours**
 2. **ƒx Indicators** → search `relative strength` → **Relative Strength Index**
 3. Gear on the "RSI 14" pane → **Inputs**: Length `14`
-4. **Style** tab → change the band levels from the default 70/30 to **60** and **30**
+4. **Style** tab → change the band levels from the default 70/30 to **60** and **35**
 
 Visual only. Delta raises no alert from this.
 

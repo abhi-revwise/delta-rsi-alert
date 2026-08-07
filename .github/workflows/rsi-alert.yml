@@ -42,7 +42,7 @@ jobs:
           RESOLUTION: ${{ vars.RESOLUTION || '4h' }}
           RSI_LENGTH: ${{ vars.RSI_LENGTH || '14' }}
           UPPER_BAND: ${{ vars.UPPER_BAND || '60' }}
-          LOWER_BAND: ${{ vars.LOWER_BAND || '30' }}
+          LOWER_BAND: ${{ vars.LOWER_BAND || '35' }}
           MACOS_NOTIFY: '0'
         run: |
           if [ -z "$NTFY_TOPIC" ]; then

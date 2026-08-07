@@ -3,7 +3,7 @@
 RSI band-cross alerter for Delta Exchange.
 
 Fires when RSI(14) on closed 4H candles crosses ABOVE the upper band (60)
-or BELOW the lower band (30). Read-only: uses the public candles endpoint
+or BELOW the lower band (35). Read-only: uses the public candles endpoint
 and never touches your account or places orders.
 
 Usage:
@@ -65,7 +65,7 @@ def rsi_target_price(last_close, avg_gain, avg_loss, target, length=14):
 
     RSI is monotonic in the next close, so this is exact, not an approximation.
     Returns None when the target is unreachable in that direction on one bar
-    (e.g. asking for the RSI-30 level while RSI is already climbing).
+    (e.g. asking for the RSI-35 level while RSI is already climbing).
     """
     if not 0 < target < 100:
         return None
@@ -237,7 +237,7 @@ def load_cfg():
         "resolution": os.environ.get("RESOLUTION", "4h"),
         "length": int(os.environ.get("RSI_LENGTH", 14)),
         "upper": float(os.environ.get("UPPER_BAND", 60)),
-        "lower": float(os.environ.get("LOWER_BAND", 30)),
+        "lower": float(os.environ.get("LOWER_BAND", 35)),
         "macos": os.environ.get("MACOS_NOTIFY", "1") == "1",
         "tg_token": os.environ.get("TELEGRAM_BOT_TOKEN", "").strip(),
         "tg_chat": os.environ.get("TELEGRAM_CHAT_ID", "").strip(),

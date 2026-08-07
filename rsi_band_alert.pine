@@ -1,13 +1,13 @@
 //@version=5
 // RSI Band Crossing Alert — 4H
-// Signals when RSI crosses the upper band (60) or the lower band (30).
-indicator("RSI Band Alert (60 / 30)", shorttitle = "RSI 60/30", overlay = false)
+// Signals when RSI crosses the upper band (60) or the lower band (35).
+indicator("RSI Band Alert (60 / 35)", shorttitle = "RSI 60/35", overlay = false)
 
 // ---------------- Inputs ----------------
 rsiLen    = input.int(14,      "RSI Length",        minval = 1)
 src       = input.source(close, "Source")
 upperBand = input.float(60.0,  "Upper Band",        minval = 0, maxval = 100)
-lowerBand = input.float(30.0,  "Lower Band",        minval = 0, maxval = 100)
+lowerBand = input.float(35.0,  "Lower Band",        minval = 0, maxval = 100)
 tf        = input.timeframe("240", "RSI Timeframe")   // 240 = 4 hours
 confirmed = input.bool(true,   "Signal only on closed bar",
      tooltip = "ON: fires once the 4H candle closes (no repaint). OFF: fires intrabar and can flip back.")
@@ -20,7 +20,7 @@ rsi    = request.security(syminfo.tickerid, tf, rsiRaw,
 
 // ---------------- Cross detection ----------------
 crossUp   = ta.crossover(rsi,  upperBand)   // RSI moves above 60
-crossDown = ta.crossunder(rsi, lowerBand)   // RSI moves below 30
+crossDown = ta.crossunder(rsi, lowerBand)   // RSI moves below 35
 
 // Optional re-entry signals (the other side of each band)
 exitUpper = ta.crossunder(rsi, upperBand)
@@ -50,7 +50,7 @@ bgcolor(sigUp   ? color.new(color.green, 85) : sigDown ? color.new(color.red, 85
 alertcondition(crossUp,   "RSI crossed ABOVE upper band",
      '{"event":"rsi_cross_up","symbol":"{{ticker}}","tf":"4h","band":60,"price":"{{close}}"}')
 alertcondition(crossDown, "RSI crossed BELOW lower band",
-     '{"event":"rsi_cross_down","symbol":"{{ticker}}","tf":"4h","band":30,"price":"{{close}}"}')
+     '{"event":"rsi_cross_down","symbol":"{{ticker}}","tf":"4h","band":35,"price":"{{close}}"}')
 
 if sigUp
     alert('{"event":"rsi_cross_up","symbol":"' + syminfo.ticker + '","tf":"4h","band":' +
